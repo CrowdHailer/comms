@@ -4,6 +4,24 @@ defmodule Comms.Actor do
 
   A `Comms.Actor` is designed to allow easy implementation of the actor model.
 
+  ## Example
+
+      defmodule Ping do
+        use Comms.Actor
+
+        @impl Comms.Actor
+        def handle({:ping, pid}, state) do
+          {[{pid, :pong}], state}
+        end
+      end
+
+      {:ok, p} = Comms.Actor.start_link(Ping, nil)
+
+      send(p, {:ping, self()})
+
+      flush()
+      # => :pong
+
   ## Actor Model
 
   > An actor is a computational entity that, in response to a message it receives, can concurrently:
@@ -49,9 +67,24 @@ defmodule Comms.Actor do
 
   """
 
-  @type address :: pid | {pid, reference}
+  @typedoc """
+  Location where an actor can direct messages too.
+  """
+  @type address :: pid | {pid, reference} | :timeout
+
+  @typedoc """
+  The payload of a sent or received message
+  """
   @type message :: term
+
+  @typedoc """
+  Any value that an actor maintains between receiving messages
+  """
   @type state :: term
+
+  @typedoc """
+  Response to a 
+  """
   @type reaction :: {[{address, message}], state}
 
   @callback handle(message, state) :: reaction
