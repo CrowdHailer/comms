@@ -2,6 +2,14 @@
 
 **Explicit message passing for improved reasoning about actor systems.**
 
+[![Hex pm](http://img.shields.io/hexpm/v/comms.svg?style=flat)](https://hex.pm/packages/comms)
+[![Build Status](https://secure.travis-ci.org/CrowdHailer/comms.svg?branch=master
+"Build Status")](https://travis-ci.org/CrowdHailer/comms)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
+- [Install from hex.pm](https://hex.pm/packages/comms)
+- [Documentation available on hexdoc](https://hexdocs.pm/comms)
+
 ## Goals
 
 The ultimate goal is a program that has deep insight into the message patterns in a program.
@@ -82,7 +90,7 @@ end
 When using `Comms.Actor` the developer is relied upon to not break the contract by using send or receive within a handle call.
 It can also become tedious to keep passing a growing list of messages to send.
 
-This can all be fixed using a reader monad.
+This can all be fixed using a writer monad.
 
 ### 4. ... (The future)
 

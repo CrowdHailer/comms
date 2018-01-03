@@ -114,11 +114,14 @@ defmodule Comms.Actor do
 
       defp react_to_action({outbound, new_state}) do
         {timeout, outbound} = Keyword.pop(outbound, :timeout, :infinity)
+
         outbound
-        |> Enum.each(fn({t, m}) -> deliver(t, m) end)
+        |> Enum.each(fn {t, m} -> deliver(t, m) end)
+
         case new_state do
           {:STOP, reason, state} ->
             {:stop, reason, state}
+
           _ ->
             {:noreply, new_state, timeout}
         end
@@ -127,6 +130,7 @@ defmodule Comms.Actor do
       defp deliver(target, message) when is_pid(target) do
         send(target, message)
       end
+
       defp deliver(from = {p, r}, message) when is_pid(p) and is_reference(r) do
         GenServer.reply(from, message)
       end

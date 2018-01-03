@@ -31,7 +31,7 @@ defmodule Comms.ActorTest do
   end
 
   test "Server knows how to respond to `Gen.call`s" do
-    {:ok, stack} = Comms.Actor.start_link(Stack, [3,2,1])
+    {:ok, stack} = Comms.Actor.start_link(Stack, [3, 2, 1])
 
     3 = GenServer.call(stack, :pop)
     2 = GenServer.call(stack, :pop)
@@ -46,7 +46,7 @@ defmodule Comms.ActorTest do
   end
 
   test "Server can be stopped for any reason" do
-    {:ok, stack} = Comms.Actor.start_link(Stack, [3,2,1])
+    {:ok, stack} = Comms.Actor.start_link(Stack, [3, 2, 1])
     monitor = Process.monitor(stack)
 
     assert :normal = GenServer.call(stack, {:stop, :normal})
@@ -55,7 +55,7 @@ defmodule Comms.ActorTest do
   end
 
   test "Server can send multiple messages to single action" do
-    {:ok, stack} = Comms.Actor.start_link(Stack, [3,2,1])
+    {:ok, stack} = Comms.Actor.start_link(Stack, [3, 2, 1])
 
     send(stack, {:broadcast, [self(), self()]})
 
@@ -64,7 +64,7 @@ defmodule Comms.ActorTest do
   end
 
   test "Understands a timeout reaction" do
-    {:ok, stack} = Comms.Actor.start(Stack, [3,2,1])
+    {:ok, stack} = Comms.Actor.start(Stack, [3, 2, 1])
     monitor = Process.monitor(stack)
 
     send(stack, {:timeout, 10})
