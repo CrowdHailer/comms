@@ -20,6 +20,9 @@ defmodule Janken.MixProject do
 
   defp deps do
     [
+      {:ace, "~> 0.16.3"},
+      {:server_sent_event, "~> 0.3.1"},
+      {:httpoison, "~> 1.1"},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false}
     ]
   end

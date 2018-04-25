@@ -61,5 +61,9 @@ defmodule Janken do
     Kernel.send(pid, message)
     :ok
   end
+  def send({:mailbox, pid, Janken.WWW.Session}, message = {:result, result}) when result in [:win, :loose] do
+    Kernel.send(pid, message)
+    :ok
+  end
 
 end
