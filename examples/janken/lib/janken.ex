@@ -1,0 +1,2 @@
+defmodule Janken do
+end
