@@ -18,7 +18,9 @@ defmodule Janken do
     {:ok, alice} = Janken.start_player
     {:ok, bob} = Janken.start_player
 
-    Janken.Game.send(game, {:move, bob, :rock})
+    {envelopes, _} = Janken.Game.send(game, {:move, bob, :rock})
+    IO.inspect(envelopes)
+    Comms.Envelope.deliver(envelopes)
 
     r = alice
     |> Janken.Player.encode_address
@@ -49,11 +51,5 @@ defmodule Janken do
   def foo({:ok, :bob}) do
     true
   end
-
-  # Dont use via tuple as it makes no sense in Gen call and cast because some cases are not pids
-  # @spec send(address(T), T) :: {[term], :ok}
-  # def send(address, message) do
-  #   {[{address, message}], :ok}
-  # end
 
 end

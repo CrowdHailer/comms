@@ -1,22 +1,26 @@
 defmodule Janken.Game do
   use GenServer
   import Kernel, except: [send: 2]
-  @opaque address :: {:via, __MODULE__, pid()}
+  @opaque address :: {:address, __MODULE__, pid()}
 
   @spec start_link([]) :: {:ok, pid(), address}
   def start_link([]) do
     case GenServer.start_link(__MODULE__, :nil) do
       {:ok, pid} ->
-        {:ok, pid, {:via, __MODULE__, pid}}
+        {:ok, pid, address(pid)}
     end
+  end
+
+  defp address(pid) do
+    {:address, __MODULE__, pid}
   end
 
   @typep move :: {:move, Janken.Player.address(), :rock | :paper | :scissors}
   @type message :: move
 
-  @spec send(address, message) :: term
+  @spec send(address, message) :: {[Comms.Envelope.t], :ok}
   def send(address, message) do
-    {[{address, message}], :ok}
+    {[Comms.Envelope.seal(address, message)], :ok}
   end
 
   # Could encode safe binary into return type
@@ -29,14 +33,28 @@ defmodule Janken.Game do
     case Base.url_decode64(binary) do
       {:ok, binary} ->
         case :erlang.binary_to_term(binary) do
-          address = {:via, __MODULE__, _} ->
+          address = {:address, __MODULE__, _} ->
             {:ok, address}
         end
     end
   end
 
-  def handle_info(x, s) do
-    IO.inspect("RECEIVED GAME")
-    IO.inspect(x)
+  @spec handle(message, term) :: {[Comms.Envelope.t], term}
+  def handle({:move, player, action}, state) do
+    case action do
+      _ ->
+        Janken.Player.send(player, {:draw, address(self())})
+    end
+  end
+
+  def handle_info(message, state) do
+    {envelopes, state} = handle(message, state)
+    :ok = Comms.Envelope.deliver(envelopes)
+    {:noreply, state}
+  end
+
+  def do_send(pid, message) do
+    ^message = Kernel.send(pid, message)
+    :ok
   end
 end
