@@ -1,10 +1,50 @@
 defmodule Janken do
   import Kernel, except: [send: 2]
 
+  @spec start_game() :: {:ok, Janken.Game.address()}
+  def start_game(supervisor \\ Janken.DynamicSupervisor) do
+    {:ok, _pid, address} = DynamicSupervisor.start_child(supervisor, Janken.Game)
+    {:ok, address}
+  end
+
+  @spec start_player() :: {:ok, Janken.Player.address()}
+  def start_player(supervisor \\ Janken.DynamicSupervisor) do
+    {:ok, _pid, address} = DynamicSupervisor.start_child(supervisor, Janken.Player)
+    {:ok, address}
+  end
+
+  # Could encode safe binary into return type
+  @spec encode_address(Janken.Game.address() | Janken.Player.address()) :: String.t()
+  def encode_address(address) do
+    :erlang.term_to_binary(address) |> Base.url_encode64()
+  end
+  @spec decode_address(String.t) :: {:ok, :bob | :cat}
+  def decode_address(binary) do
+    case Base.url_decode64(binary) do
+      {:ok, binary} ->
+        {:ok, :erlang.binary_to_term(binary)}
+    end
+  end
+
   def run() do
-    {:ok, game_mailbox} = Janken.Game.start
-    player_mailbox = {:mailbox, self(), Player}
-    send(game_mailbox, {:move, player_mailbox, :rock})
+    {:ok, game} = Janken.start_game
+    {:ok, alice} = Janken.start_player
+    {:ok, bob} = Janken.start_player
+
+    Janken.Game.send(game, {:move, bob, :rock})
+
+    r = alice
+    |> encode_address
+    |> decode_address
+    # |> IO.inspect
+    |> foo
+
+    # case r do
+    #   {:ok, :bob} ->
+    #     :ok
+    # end
+
+    # Janken.Game.send(alice, {:move, bob, :rock})
 
     # Dialyzer will now spot that this is an invalid message to a game_mailbox
     # Can fix by having the user match mailbox to send function
@@ -15,55 +55,10 @@ defmodule Janken do
     # send(game_mailbox, {:move, player_mailbox, :lizard})
   end
 
-  @type action :: :rock | :paper | :scissors
-
-  defmodule Game do
-    @type mailbox :: {:mailbox, pid(), __MODULE__}
-
-    @spec start() :: {:ok, mailbox}
-    def start() do
-      game_ref = make_ref()
-      child_spec = %{
-        id: game_ref,
-        start: {:proc_lib, :start_link, [Janken.Game, :init, [game_ref]]},
-        restart: :temporary
-      }
-      {:ok, _pid, mailbox} = DynamicSupervisor.start_child(Janken.DynamicSupervisor, child_spec)
-      {:ok, mailbox}
-    end
-
-    def init(game_ref) do
-      [parent | _] = Process.get(:"$ancestors")
-
-      mailbox = {:mailbox, self(), Game}
-
-      :proc_lib.init_ack(parent, {:ok, self(), mailbox});
-      loop(mailbox, :state)
-    end
-
-    def loop(mailbox, state) do
-      # The must be some way to write a receive on mailbox macro that checks if pid is self and can be used to check all message types handled
-      receive do
-        {:move, reply_mailbox, action} ->
-          IO.inspect("received #{inspect(action)}")
-          # Janken.send(player_mailbox, :waiting)
-      end
-    end
+  # @spec foo({:ok, :bob | :cat}) :: true
+  def foo({:ok, :bob}) do
+    true
   end
 
-  @spec send({:mailbox, pid(), Game}, {:move, {:mailbox, pid, Player}, action}) :: :ok
-  @spec send({:mailbox, pid, Player}, {:result, :win | :loose}) :: :ok
-  def send({:mailbox, pid, Game}, message = {:move, {:mailbox, _pid, Player}, action}) when action in [:rock, :paper, :scissors] do
-    Kernel.send(pid, message)
-    :ok
-  end
-  def send({:mailbox, pid, Player}, message = {:result, result}) when result in [:win, :loose] do
-    Kernel.send(pid, message)
-    :ok
-  end
-  def send({:mailbox, pid, Janken.WWW.Session}, message = {:result, result}) when result in [:win, :loose] do
-    Kernel.send(pid, message)
-    :ok
-  end
 
 end

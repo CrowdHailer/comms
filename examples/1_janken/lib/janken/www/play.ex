@@ -10,7 +10,7 @@ defmodule Janken.WWW.Play do
 
     move = data["move"]
 
-    Janken.send(player, {:result, :win})
+    # Janken.send(player, {:result, :win})
     response(:created)
   end
 end

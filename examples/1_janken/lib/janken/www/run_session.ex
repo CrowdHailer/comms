@@ -1,6 +1,6 @@
 defmodule Janken.WWW.Session do
-  use Raxx.Server
-
+  # use Raxx.Server
+  import Raxx
   alias ServerSentEvent, as: SSE
 
   @impl Raxx.Server
