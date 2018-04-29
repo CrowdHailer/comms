@@ -32,5 +32,6 @@ defmodule JankenTest do
 
   test "better" do
     Janken.run()
+    Process.sleep(2_000)
   end
 end
