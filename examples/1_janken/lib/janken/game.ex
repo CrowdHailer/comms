@@ -1,5 +1,6 @@
 defmodule Janken.Game do
   use GenServer
+  import Kernel, except: [send: 2]
   @opaque address :: {:via, __MODULE__, pid()}
 
   @spec start_link([]) :: {:ok, pid(), address}

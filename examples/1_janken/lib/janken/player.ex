@@ -1,13 +1,25 @@
 defmodule Janken.Player do
   use GenServer
+  import Kernel, except: [send: 2]
   @opaque address :: {:via, __MODULE__, pid()}
 
-  @spec start_link([]) :: {:ok, pid, address}
   def start_link([]) do
     case GenServer.start_link(__MODULE__, :nil) do
       {:ok, pid} ->
-        {:ok, pid, {:via, __MODULE__, pid}}
+        {:ok, pid, address(pid)}
     end
+  end
+
+  @spec address(pid) :: address
+  defp address(pid) do
+    {:via, __MODULE__, pid}
+  end
+
+  @type message :: {:invite, Janken.Game.address()}
+
+  @spec send(address, message) :: term
+  def send(address, message) do
+    {[{address, message}], :ok}
   end
 
   @spec encode_address(address) :: String.t()
@@ -25,8 +37,20 @@ defmodule Janken.Player do
     end
   end
 
-  def handle_info(x, s) do
+  @spec handle(message, term) :: term
+  def handle({:invite, game}, state) do
+    Janken.Game.send(game, {:move, address(self()), :rock})
     IO.inspect("RECEIVED PLAYER")
-    IO.inspect(x)
+    {[], state}
+  end
+  def handle(:foo, state) do
+    {[], state}
+
+  end
+
+  # @spec handle_info({:invite, Janken.Game.address(), address}, term) :: {:noreply, term}
+  def handle_info(message, state) do
+    {list, state} = handle(message, state)
+    {:noreply, state}
   end
 end

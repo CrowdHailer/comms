@@ -20,6 +20,7 @@ defmodule Janken.MixProject do
 
   defp deps do
     [
+      {:comms, path: "../../"},
       {:ace, "~> 0.16.3"},
       {:server_sent_event, "~> 0.3.1"},
       {:httpoison, "~> 1.1"},

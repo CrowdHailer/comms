@@ -1,8 +1,6 @@
 defmodule Janken do
   import Kernel, except: [send: 2]
 
-  @type address(M) :: M
-
   @spec start_game() :: {:ok, Janken.Game.address()}
   def start_game(supervisor \\ Janken.DynamicSupervisor) do
     {:ok, _pid, address} = DynamicSupervisor.start_child(supervisor, Janken.Game)
@@ -30,11 +28,12 @@ defmodule Janken do
     # |> foo
 
     # send(game, 5)
-    case r do
-      {:ok, game} ->
-        Janken.Game.send(game, {:move, bob, :rock})
-        :ok
-    end
+    # Comms.Envelope.seal(:bob, :do)
+    # case r do
+    #   {:ok, game} ->
+    #     Janken.Game.send(game, {:move, bob, :rock})
+    #     :ok
+    # end
     # Janken.Game.send(alice, {:move, bob, :rock})
 
     # Dialyzer will now spot that this is an invalid message to a game_mailbox
