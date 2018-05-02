@@ -15,7 +15,7 @@ defmodule Janken.Game do
     {:address, __MODULE__, pid}
   end
 
-  @typep move :: {:move, Janken.Player.address(), :rock | :paper | :scissors}
+  @typep move :: {:move, Janken.Persona.t(), :rock | :paper | :scissors}
   @type message :: move
 
   @spec send(address, message) :: {[Comms.Envelope.t()], :ok}
@@ -44,7 +44,7 @@ defmodule Janken.Game do
   def handle({:move, player, action}, state) do
     case action do
       _ ->
-        Janken.Player.send(player, {:draw, address(self())})
+        Janken.Persona.post(player, {:draw, address(self())})
     end
   end
 

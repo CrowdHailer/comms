@@ -11,12 +11,15 @@ defmodule Janken.WWW do
 
     address = Janken.RealPerson.address(name)
     # Probably should be /user/address/events
-    redirect("/events/" <> Janken.RealPerson.encode_address(address))
+    redirect("/events/" <> Janken.Persona.encode(address))
   end
 
   def handle_request(%{method: :GET, path: ["events", address]}, _) do
-    {:ok, address} = Janken.RealPerson.decode_address(address)
-    Janken.RealPerson.subscribe(address)
+    {:ok, address} = Janken.Persona.decode(address)
+    {envelopes, :ok} = Janken.Persona.post(address, :subscribe)
+    |> IO.inspect
+    
+    Comms.Envelope.deliver(envelopes)
 
     head =
       response(:ok)
@@ -32,10 +35,10 @@ defmodule Janken.WWW do
   end
 
   def handle_request(request = %{method: :POST, path: ["personas", address, "invite"]}, state) do
-    {:ok, persona} = Janken.RealPerson.decode_address(address)
+    {:ok, persona} = Janken.Persona.decode(address)
     %{"game" => game_address} = URI.decode_query(request.body)
     {:ok, game} = Janken.Game.decode_address(game_address)
-    {envelopes, :ok} = Janken.RealPerson.send(persona, {:invite, game})
+    {envelopes, :ok} = Janken.Persona.post(persona, {:invite, game})
     Comms.Envelope.deliver(envelopes)
     response(:created)
   end
@@ -43,7 +46,7 @@ defmodule Janken.WWW do
   def handle_request(request = %{method: :PUT, path: ["games", address, "play"]}, state) do
     {:ok, game} = Janken.Game.decode_address(address)
     %{"move" => move, "player" => player_str} = URI.decode_query(request.body)
-    {:ok, player} = Janken.RealPerson.decode_address(player_str)
+    {:ok, player} = Janken.Persona.decode(player_str)
     move = String.to_atom(move)
     {envelopes, :ok} = Janken.Game.send(game, {:move, player, move})
     Comms.Envelope.deliver(envelopes)

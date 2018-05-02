@@ -7,7 +7,7 @@ defmodule Janken do
     {:ok, address}
   end
 
-  @spec start_player() :: {:ok, Janken.Player.address()}
+  @spec start_player() :: {:ok, Janken.Persona.t()}
   def start_player(supervisor \\ Janken.DynamicSupervisor) do
     {:ok, _pid, address} = DynamicSupervisor.start_child(supervisor, Janken.Player)
     {:ok, address}
@@ -22,10 +22,10 @@ defmodule Janken do
     IO.inspect(envelopes)
     Comms.Envelope.deliver(envelopes)
 
-    r =
-      alice
-      |> Janken.Player.encode_address()
-      |> Janken.Player.decode_address()
+    # r =
+    #   alice
+    #   |> Janken.Player.encode_address()
+    #   |> Janken.Player.decode_address()
 
     # attatch decode address to module
     # |> IO.inspect
