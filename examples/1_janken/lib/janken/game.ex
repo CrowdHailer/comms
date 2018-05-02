@@ -5,7 +5,7 @@ defmodule Janken.Game do
 
   @spec start_link([]) :: {:ok, pid(), address}
   def start_link([]) do
-    case GenServer.start_link(__MODULE__, :nil) do
+    case GenServer.start_link(__MODULE__, nil) do
       {:ok, pid} ->
         {:ok, pid, address(pid)}
     end
@@ -18,7 +18,7 @@ defmodule Janken.Game do
   @typep move :: {:move, Janken.Player.address(), :rock | :paper | :scissors}
   @type message :: move
 
-  @spec send(address, message) :: {[Comms.Envelope.t], :ok}
+  @spec send(address, message) :: {[Comms.Envelope.t()], :ok}
   def send(address, message) do
     {[Comms.Envelope.seal(address, message)], :ok}
   end
@@ -28,7 +28,8 @@ defmodule Janken.Game do
   def encode_address(address) do
     :erlang.term_to_binary(address) |> Base.url_encode64()
   end
-  @spec decode_address(String.t) :: {:ok, address}
+
+  @spec decode_address(String.t()) :: {:ok, address}
   def decode_address(binary) do
     case Base.url_decode64(binary) do
       {:ok, binary} ->
@@ -39,7 +40,7 @@ defmodule Janken.Game do
     end
   end
 
-  @spec handle(message, term) :: {[Comms.Envelope.t], term}
+  @spec handle(message, term) :: {[Comms.Envelope.t()], term}
   def handle({:move, player, action}, state) do
     case action do
       _ ->

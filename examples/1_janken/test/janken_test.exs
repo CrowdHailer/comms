@@ -4,32 +4,63 @@ defmodule JankenTest do
 
   alias ServerSentEvent, as: SSE
 
-  # test "a single game" do
-  #   Janken.run()
-  #   |> IO.inspect
-  # end
-  #
-  #
-  # test "sessions" do
-  #   {:ok, %{body: game_id}} = HTTPoison.get("http://localhost:8080/")
-  #
-  #   {:ok, _} = HTTPoison.get("http://localhost:8080/session", [], stream_to: self())
-  #   assert_receive %HTTPoison.AsyncStatus{code: 200}, 5_000
-  #   assert_receive %HTTPoison.AsyncChunk{chunk: event}, 5_000
-  #
-  #   {:ok, {%{lines: [session_id]}, ""}} = SSE.parse(event)
-  #
-  #   body = URI.encode_query(%{
-  #     player: session_id,
-  #     move: "rock"
-  #   })
-  #   {:ok, _} = HTTPoison.post("http://localhost:8080/game/#{game_id}/move", body, [])
-  #   assert_receive %HTTPoison.AsyncChunk{chunk: event}, 5_000
-  #   IO.inspect(event)
-  #   {:ok, {%{lines: [session_id]}, ""}} = SSE.parse(event)
-  #   |> IO.inspect
-  # end
+  test "real people" do
+    {:ok, %{headers: headers}} =
+      HTTPoison.put(
+        "http://localhost:8080/sign-in",
+        URI.encode_query(%{"name" => "penny"})
+      )
 
+    "/events/" <> penny = Raxx.get_header(%{headers: headers}, "location")
+
+    {:ok, _} = HTTPoison.get("http://localhost:8080/events/" <> penny, [], stream_to: self())
+
+    {:ok, %{headers: headers}} =
+      HTTPoison.put(
+        "http://localhost:8080/sign-in",
+        URI.encode_query(%{"name" => "quentin"})
+      )
+
+    "/events/" <> quentin = Raxx.get_header(%{headers: headers}, "location")
+
+    {:ok, _} = HTTPoison.get("http://localhost:8080/events/" <> quentin, [], stream_to: self())
+
+    {:ok, %{headers: headers}} =
+      HTTPoison.post(
+        "http://localhost:8080/start-game",
+        ""
+      )
+
+    "/games/" <> game = Raxx.get_header(%{headers: headers}, "location")
+
+    Process.sleep(1_000)
+
+    # {:ok, {_, _, pid}} = Janken.RealPerson.decode_address(penny)
+    [pid] = :pg2.get_members("penny")
+    # IO.inspect(pid)
+    # send(pid, :TADA)
+
+    # From penny
+    {:ok, %{headers: headers}} =
+      HTTPoison.post(
+        "http://localhost:8080/personas/#{penny}/invite",
+        URI.encode_query(%{"game" => game})
+      )
+
+    assert_receive %{chunk: chunk}, 1_000
+    IO.inspect(chunk)
+
+    {:ok, %{headers: headers}} =
+      HTTPoison.put(
+        "http://localhost:8080/games/#{game}/play",
+        URI.encode_query(%{"move" => "rock", "player" => penny})
+      )
+
+    assert_receive %{chunk: chunk}, 1_000
+    IO.inspect(chunk)
+  end
+
+  @tag :skip
   test "better" do
     Janken.run()
     Process.sleep(2_000)

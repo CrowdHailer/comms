@@ -14,17 +14,19 @@ defmodule Janken do
   end
 
   def run() do
-    {:ok, game} = Janken.start_game
-    {:ok, alice} = Janken.start_player
-    {:ok, bob} = Janken.start_player
+    {:ok, game} = Janken.start_game()
+    {:ok, alice} = Janken.start_player()
+    {:ok, bob} = Janken.start_player()
 
     {envelopes, _} = Janken.Game.send(game, {:move, bob, :rock})
     IO.inspect(envelopes)
     Comms.Envelope.deliver(envelopes)
 
-    r = alice
-    |> Janken.Player.encode_address
-    |> Janken.Player.decode_address
+    r =
+      alice
+      |> Janken.Player.encode_address()
+      |> Janken.Player.decode_address()
+
     # attatch decode address to module
     # |> IO.inspect
     # |> foo
@@ -51,5 +53,4 @@ defmodule Janken do
   def foo({:ok, :bob}) do
     true
   end
-
 end

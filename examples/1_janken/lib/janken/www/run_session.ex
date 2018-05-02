@@ -9,9 +9,10 @@ defmodule Janken.WWW.Session do
 
     session_id = :erlang.term_to_binary(my_mailbox) |> Base.url_encode64()
 
-    head = response(:ok)
-    |> set_header("content-type", SSE.mime_type())
-    |> set_body(true)
+    head =
+      response(:ok)
+      |> set_header("content-type", SSE.mime_type())
+      |> set_body(true)
 
     data = data(SSE.serialize(session_id, type: "session"))
 

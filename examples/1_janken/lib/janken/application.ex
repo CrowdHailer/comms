@@ -4,9 +4,9 @@ defmodule Janken.Application do
   use Application
 
   def start(_type, _args) do
-
     children = [
-      {DynamicSupervisor, strategy: :one_for_one, name: Janken.DynamicSupervisor}
+      {DynamicSupervisor, strategy: :one_for_one, name: Janken.DynamicSupervisor},
+      Janken.WWW
     ]
 
     opts = [strategy: :one_for_one, name: Janken.Supervisor]
